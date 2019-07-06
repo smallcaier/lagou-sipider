@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href={% static "css/bootstrap.min.css" %}>
+    <link rel="stylesheet" href={% static "css/bootstrap-table.min.css" %}>
+    <style>
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <table id="table" data-toggle="table" data-url="data/data1.json" data-show-columns="true" data-search="true"
+           data-show-refresh="true" data-show-toggle="true" data-pagination="true" data-height="500">
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>岗位名称</th>
+                <th>岗位类型</th>
+                <th>工资</th>
+                <th>工作经验</th>
+                <th>教育</th>
+                <th>方向</th>
+                <th>公司</th>
+                <th>发布时间</th>
+                <th>其他</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in obj %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ job.positionName }}</td>
+                    <td>{{ job.positionType }}</td>
+                    <td>{{ job.salary }}</td>
+                    <td>{{ job.workYear }}</td>
+                    <td>{{ job.education }}</td>
+                    <td>{{ job.skillLables }}</td>
+                    <td id="company">
+                        <a style="cursor: pointer" class="blue" onclick="details({{ job.order_id }})">{{ job.company }}</a>
+                    </td>
+                    <td>{{ job.formatCreateTime }}</td>
+                    <td><a style="cursor: pointer" class="blue" onclick="details2({{ job.order_id }})">详情</a></td>
+                </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<!--公司详情模态框-->
+<div class="modal fade" tabindex="-1" role="dialog" id="details_modal" data-backdrop="static">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">公司详情</h4>
+      </div>
+      <div class="modal-body">
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!--其他详情模态框-->
+<div class="modal fade" tabindex="-1" role="dialog" id="details_modal2" data-backdrop="static">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">其他详情</h4>
+      </div>
+      <div class="modal-body">
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script src={% static "js/jquery.min.js" %}></script>
+<script src={% static "js/bootstrap.min.js" %}></script>
+
+<script src={% static "js/tableExport.js" %}></script>
+<script src={% static "js/jquery.base64.js" %}></script>
+<script src={% static "js/bootstrap-table.js" %}></script>
+<script src={% static "js/bootstrap-table-export.js" %}></script>
+<script>
+    $(function () {
+        $('#build').click(build);//.trigger('click');
+        $('#cells, #rows').keyup(function (e) {
+            if (e.keyCode === 13) {
+                build();
+            }
+        });
+    });
+
+    function build() {
+        var cells = $('#cells').val(),
+            rows = $('#rows').val(),
+            i, j, row,
+            columns = [],
+            data = [];
+
+        for (i = 0; i < cells; i++) {
+            columns.push({
+                field: 'field' + i,
+                title: 'Cell' + i
+            });
+        }
+        for (i = 0; i < rows; i++) {
+            row = {};
+            for (j = 0; j < cells; j++) {
+                row['field' + j] = 'Row-' + i + '-' + j;
+            }
+            data.push(row);
+        }
+        $('#table').bootstrapTable('destroy').bootstrapTable({
+            columns: columns,
+            data: data
+        });
+    }
+
+    function details(id) {
+
+        $.get('/company/detail',{"id":id},function (data) {
+            var html = '<table class="table table-bordered">';
+            html +='<tr>';
+            html +='<td class="active">公司名称</td>';
+            html +='<td class="success">'+data["company"]+'</td>';
+            html +='</tr>';
+            html +='<tr>';
+            html +='<td class="active">公司类型</td>';
+            html +='<td class="success">'+data["companytype"]+'</td>';
+            html +='</tr>';
+            html +='<tr>';
+            html +='<td class="active">公司规模</td>';
+            html +='<td class="success">'+data["companyprocess"]+'</td>';
+            html +='</tr>';
+            html +='<tr>';
+            html +='<td class="active">公司人数</td>';
+            html +='<td class="success">'+data["companynumber"]+'</td>';
+            html +='</tr>';
+            html +='<tr>';
+            html +='<td class="active">公司城市</td>';
+            html +='<td class="success">'+data["city"]+'</td>';
+            html +='</tr>';
+
+
+
+            html += '</table>';
+            $('#details_modal').find('div[class="modal-body"]').html(html);
+
+        },"json");
+        $('#details_modal').modal('show');
+    }
+
+    function details2(id) {
+
+        $.get('/company/detail',{"id":id},function (data) {
+            var html = '<table class="table table-bordered">';
+            html +='<tr>';
+            html +='<td class="active">职位诱惑</td>';
+            html +='<td class="success">'+data["fuli"]+'</td>';
+            html +='</tr>';
+            html +='<tr>';
+            html +='<td class="active">职位描述</td>';
+            html +='<td class="success">'+data["companydesc"]+'</td>';
+            html +='</tr>';
+            html +='<tr>';
+            html +='<td class="active">公司地址</td>';
+            html +='<td class="success">'+data["companyadd"]+'</td>';
+            html +='</tr>';
+
+            html += '</table>';
+            $('#details_modal2').find('div[class="modal-body"]').html(html);
+
+        },"json");
+        $('#details_modal2').modal('show');
+    }
+
+</script>
+</body>
+</html>
+
+
